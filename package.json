@@ -1,6 +1,6 @@
 {
   "name": "rewt",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "JWT with Redis as the source of a shared secret for easy/fast rotation",
   "main": "index.js",
   "scripts": {
