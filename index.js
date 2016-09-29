@@ -64,7 +64,7 @@ class Rewt {
       if (err) {
         cb(err);
       } else {
-        cb(null, jwt.sign(payload, val));
+        jwt.sign(payload, val, {}, cb);
       }
     });
   }
@@ -80,7 +80,7 @@ class Rewt {
       if (err) {
         cb(err);
       } else {
-        cb(null, jwt.verify(token, val));
+        jwt.verify(token, val, cb);
       }
     });
   }
