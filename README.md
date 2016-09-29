@@ -48,3 +48,18 @@ rewt.verify(token, (err, payload) => {
   console.log(`verifyed payload: ${JSON.stringify(payload, null, '  ')}`;
 });
 ```
+
+## Use-case
+Why use this module? When signing a JWT you need some sort of secret that can be
+used by both send and receiver to verify that a token was signed by someone that
+we trust. Our use case was to use JWTs to verify internal server-to-server
+communication.
+
+By using Redis as the source of storage for the shared secret, we can have it
+automatically rotated by setting a TTL on the key (rewt handles recreating a new
+psuedo-random one if the old key has expired). It also allows us to quickly
+invalidate a currently shared secret if it becomes compromised by simply
+updating the key in Redis as all new signing and verification requests will use
+the new secret. This does mean that requests in flight will fail verification,
+but this is an acceptable trade-off as the window for signing a payload before
+a secret invalidation is incredibly small.
