@@ -22,8 +22,10 @@
   "homepage": "https://github.com/mixmaxhq/rewt#readme",
   "dependencies": {
     "jsonwebtoken": "^7.1.9",
+    "node-redis-scripty": "0.0.5",
     "parse-redis-url": "0.0.2",
-    "redis": "^2.6.2"
+    "redis": "^2.6.2",
+    "uuid": "^2.0.3"
   },
   "devDependencies": {
     "chai": "^3.5.0",

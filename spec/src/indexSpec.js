@@ -1,5 +1,5 @@
 'use strict';
-/* globals describe, it, spyOn */
+/* globals describe, it, afterEach, beforeEach */
 /* jshint -W030 */
 
 const Rewt = require('../..');
@@ -27,34 +27,58 @@ describe('rewt', () => {
     });
   });
 
-  describe('_getSecret', () => {
-    it('should be able to retrieve the correct token', (done) => {
-      let rewt = buildRewt('redis://localhost:6379', 'hello');
-      spyOn(rewt._redisConn, 'get').and.callFake((key, cb) => { cb(null, 'supersecret'); });
-      rewt._getSecret((err, val) => {
-        expect(err).to.be.null;
-        expect(val).to.equal('supersecret');
-        done();
-      });
-    });
-  });
+  if (process.env.INTEGRATION_TEST) {
+    describe('integration tests', () => {
 
-  describe('sign', () => {
-    it('should be able to sign and verify payloads properly', (done) => {
-      let rewt = buildRewt('redis://localhost:6379', 'hello');
-      spyOn(rewt._redisConn, 'get').and.callFake((key, cb) => { cb(null, 'supersecret'); });
+      const Redis = require('redis');
+      let redis = Redis.createClient('redis://localhost:6379');
+      const integrationKey = 'integration:rewt-secret';
 
-      let payload = {_id:'world', iat: Math.floor(Date.now() / 1000) - 30 };
+      let cleanup = (done) => { redis.del(integrationKey, done); };
 
-      rewt.sign(payload, (err, val) => {
-        expect(err).to.be.null;
+      beforeEach(cleanup);
+      afterEach(cleanup);
 
-        rewt.verify(val, (err, verified) => {
+      it('should be able to retrieve the secret when already set', (done) => {
+        let rewt = buildRewt('redis://localhost:6379', 'integration');
+        redis.set(integrationKey, 'yolo', (err) => {
           expect(err).to.be.null;
-          expect(verified).to.deep.equal(payload);
+          rewt._getSecret((err, secret) => {
+            expect(err).to.be.null;
+            expect(secret).to.equal('yolo');
+
+            done();
+          });
         });
-        done();
+      });
+
+      it('should be able to generate the secret when none set', (done) => {
+        let rewt = buildRewt('redis://localhost:6379', 'integration');
+        redis.del(integrationKey, (err) => {
+          expect(err).to.be.null;
+          rewt._getSecret((err, secret) => {
+            expect(err).to.be.null;
+            expect(secret).to.not.be.null;
+            expect(secret.length).to.equal(36); // 32 bytes as hex plus four dashes
+
+            done();
+          });
+        });
+      });
+
+      it('should be able to signe and verify payloads properly', (done) => {
+        let rewt = buildRewt('redis://localhost:6379', 'integration');
+        let payload = {_id:'world', iat: Math.floor(Date.now() / 1000) - 30 };
+        rewt.sign(payload, (err, val) => {
+          expect(err).to.be.null;
+
+          rewt.verify(val, (err, verified) => {
+            expect(err).to.be.null;
+            expect(verified).to.deep.equal(payload);
+          });
+          done();
+        });
       });
     });
-  });
+  }
 });
