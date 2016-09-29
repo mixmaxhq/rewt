@@ -14,7 +14,7 @@
     "jwt",
     "json web token",
     "authentication",
-    "security"
+      "security",
     "redis"
   ],
   "author": "Trey Tacon <trey@mixmax.com> (https://mixmax.com)",
