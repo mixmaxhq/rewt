@@ -4,12 +4,13 @@
 
 const Rewt = require('../..');
 const expect = require('chai').expect;
+const redis = require('redis');
 
 describe('rewt', () => {
 
   function buildRewt(url, namespace, ttl) {
     return new Rewt({
-      redisUrl: url,
+      redisConn: redis.createClient(url),
       redisNamespace: namespace,
       ttl: ttl
     });
@@ -30,18 +31,17 @@ describe('rewt', () => {
   if (process.env.INTEGRATION_TEST) {
     describe('integration tests', () => {
 
-      const Redis = require('redis');
-      let redis = Redis.createClient('redis://localhost:6379');
+      let redisConn = redis.createClient('redis://localhost:6379');
       const integrationKey = 'integration:rewt-secret';
 
-      let cleanup = (done) => { redis.del(integrationKey, done); };
+      let cleanup = (done) => { redisConn.del(integrationKey, done); };
 
       beforeEach(cleanup);
       afterEach(cleanup);
 
       it('should be able to retrieve the secret when already set', (done) => {
         let rewt = buildRewt('redis://localhost:6379', 'integration');
-        redis.set(integrationKey, 'yolo', (err) => {
+        redisConn.set(integrationKey, 'yolo', (err) => {
           expect(err).to.be.null;
           rewt._getSecret((err, secret) => {
             expect(err).to.be.null;
@@ -54,7 +54,7 @@ describe('rewt', () => {
 
       it('should be able to generate the secret when none set', (done) => {
         let rewt = buildRewt('redis://localhost:6379', 'integration');
-        redis.del(integrationKey, (err) => {
+        redisConn.del(integrationKey, (err) => {
           expect(err).to.be.null;
           rewt._getSecret((err, secret) => {
             expect(err).to.be.null;
@@ -66,7 +66,7 @@ describe('rewt', () => {
         });
       });
 
-      it('should be able to signe and verify payloads properly', (done) => {
+      it('should be able to sign and verify payloads properly', (done) => {
         let rewt = buildRewt('redis://localhost:6379', 'integration');
         let payload = {_id:'world', iat: Math.floor(Date.now() / 1000) - 30 };
         rewt.sign(payload, (err, val) => {
