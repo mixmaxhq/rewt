@@ -1,7 +1,5 @@
 'use strict';
 
-const redis = require('redis');
-const assert = require('assert');
 const jwt = require('jsonwebtoken');
 const Scripty = require('node-redis-scripty');
 const uuid = require('uuid');
@@ -32,24 +30,23 @@ return newVal
 class Rewt {
 
   /**
-   * Creates a new Rewt. The location of redis, the namespace to keep the secret
-   * key under and key TTL can be provided as options - only the redis location
-   * (URI) is required.
+   * Creates a new Rewt. A redis connection, the namespace to keep the secret
+   * key under and key TTL can be provided as options - only the redis
+   * connection (URI) is required.
    *
    * @param {Object} options Options provided to the Rewt constructor.
-   *   @param {String} options.redisUrl (required) The location of redis.
+   *   @param {String} options.redisConn (required) A connection to redis.
    *   @param {String} options.redisNamespace (optional) The namespace to use.
    *   @param {Number} options.ttl (optional) The key's TTL before being rotated.
    *
    */
   constructor(options) {
     options = options || {};
-    assert(options.redisUrl, 'You must provide a redis URL');
     options.redisNamespace = options.redisNamespace || 'rewt';
     options.ttl = options.ttl || 60 * 60 * 24;
 
     this.options = options;
-    this._redisConn = redis.createClient(options.redisUrl);
+    this._redisConn = options.redisConn;
     this._scripty = new Scripty(this._redisConn);
   }
 
