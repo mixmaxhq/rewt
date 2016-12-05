@@ -3,6 +3,8 @@ This module provides a simplified wrapper for signing and verify JWT tokens whil
 sourcing a shared secret from Redis. This has the advantage of also being able to
 set a TTL on the key to allow for automated secret rotation.
 
+See this [blog post](https://www.mixmax.com/blog/securely-signing-requests-with-rewt) introducing Rewt.
+
 ## Install
 ```
 $ npm install rewt --save
