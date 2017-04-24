@@ -6,6 +6,11 @@ set a TTL on the key to allow for automated secret rotation.
 See this [blog post](https://www.mixmax.com/blog/securely-signing-requests-with-rewt) introducing Rewt.
 
 ## Install
+
+```
+$ yarn add rewt
+```
+or
 ```
 $ npm install rewt --save
 ```
