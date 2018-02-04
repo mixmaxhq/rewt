@@ -32,7 +32,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "eslint": ">=3",
-    "eslint-config-mixmax": "^0.6.0",
+    "eslint-config-mixmax": "^1.0.0",
     "jasmine": "^2.5.2",
     "pre-commit": "^1.2.2",
     "redis": "^2.6.2"
