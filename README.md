@@ -8,7 +8,7 @@ See this [blog post](https://www.mixmax.com/blog/securely-signing-requests-with-
 ## Install
 
 ```
-$ yarn add rewt
+$ npm install rewt
 ```
 or
 ```
