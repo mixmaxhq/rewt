@@ -33,7 +33,7 @@
     "chai": "^3.5.0",
     "eslint": ">=3",
     "eslint-config-mixmax": "^0.6.0",
-    "jasmine": "^2.5.2",
+    "jasmine": "^3.4.0",
     "pre-commit": "^1.2.2",
     "redis": "^2.6.2"
   },
