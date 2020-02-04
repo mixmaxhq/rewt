@@ -1,6 +1,4 @@
 'use strict';
-/* globals describe, it, afterEach, beforeEach */
-/* jshint -W030 */
 
 const Rewt = require('../..');
 const expect = require('chai').expect;
