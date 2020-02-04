@@ -28,7 +28,6 @@ return newVal
  * signing and verification.
  */
 class Rewt {
-
   /**
    * Creates a new Rewt. A redis connection, the namespace to keep the secret
    * key under and key TTL can be provided as options - only the redis
@@ -88,7 +87,7 @@ class Rewt {
    */
   _getSecret(cb) {
     this._scripty.loadScript('secretRetrievalScript', secretRetrievalScript, (err, script) => {
-      if (err) return cb(err);
+      if (err) return void cb(err);
 
       script.run(1, this._generateKeyName(), uuid.v4(), this.options.ttl, cb);
     });
