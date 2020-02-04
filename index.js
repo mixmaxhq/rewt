@@ -87,7 +87,7 @@ class Rewt {
    */
   _getSecret(cb) {
     this._scripty.loadScript('secretRetrievalScript', secretRetrievalScript, (err, script) => {
-      if (err) return cb(err);
+      if (err) return void cb(err);
 
       script.run(1, this._generateKeyName(), uuid.v4(), this.options.ttl, cb);
     });
