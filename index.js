@@ -28,7 +28,6 @@ return newVal
  * signing and verification.
  */
 class Rewt {
-
   /**
    * Creates a new Rewt. A redis connection, the namespace to keep the secret
    * key under and key TTL can be provided as options - only the redis
