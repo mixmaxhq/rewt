@@ -37,7 +37,7 @@
     "eslint-config-mixmax": "^4.8.0",
     "jasmine": "^2.5.2",
     "pre-commit": "^1.2.2",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.0",
     "redis": "^2.6.2"
   },
   "pre-commit": [
