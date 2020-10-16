@@ -6,7 +6,7 @@
   "scripts": {
     "ci": "npm run lint && npm test",
     "lint": "eslint .",
-    "test": "jasmine"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -26,16 +26,16 @@
   },
   "homepage": "https://github.com/mixmaxhq/rewt#readme",
   "dependencies": {
+    "jest": "^26.5.3",
     "jsonwebtoken": "^8.3.0",
     "node-redis-scripty": "0.0.5",
+    "promise-callbacks": "^3.8.2",
     "uuid": "^2.0.3"
   },
   "devDependencies": {
     "@mixmaxhq/prettier-config": "^1.0.0",
-    "chai": "^3.5.0",
     "eslint": "^6.8.0",
     "eslint-config-mixmax": "^4.8.0",
-    "jasmine": "^2.5.2",
     "pre-commit": "^1.2.2",
     "prettier": "^1.19.1",
     "redis": "^2.6.2"

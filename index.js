@@ -1,5 +1,3 @@
-'use strict';
-
 const jwt = require('jsonwebtoken');
 const Scripty = require('node-redis-scripty');
 const uuid = require('uuid');
@@ -15,11 +13,14 @@ local newVal = ARGV[1]
 local ttl = ARGV[2]
 
 if redis.call("EXISTS", key) == 1 then
-   return redis.call("GET", key)
+   ttl = redis.call("TTL", key)
+   local secret = redis.call("GET", key)
+   return { ttl, secret }
 end
 
 redis.call("setex", key, ttl, newVal)
-return newVal
+local secret = newVal
+return { ttl, secret }
 `;
 
 /**
@@ -37,7 +38,8 @@ class Rewt {
    *   @param {String} options.redisConn (required) A connection to redis.
    *   @param {String} options.redisNamespace (optional) The namespace to use.
    *   @param {Number} options.ttl (optional) The key's TTL before being rotated.
-   *
+   *   @param {Boolean} options.cacheSecret (optional) Whether or not to cache
+   *     the secret locally.
    */
   constructor(options) {
     options = options || {};
@@ -47,21 +49,24 @@ class Rewt {
     this.options = options;
     this._redisConn = options.redisConn;
     this._scripty = new Scripty(this._redisConn);
+    this._shouldCacheSecret = options.cacheSecret || false;
   }
 
   /**
    * Signs the given payload.
    *
    * @param {Object} payload The payload to sign.
-   * @param {Function} cb Node style callback.
    */
-  sign(payload, cb) {
-    this._getSecret((err, val) => {
-      if (err) {
-        cb(err);
-      } else {
-        jwt.sign(payload, val, {}, cb);
-      }
+  async sign(payload) {
+    const secret = await this._getSecret();
+    return new Promise((resolve, reject) => {
+      jwt.sign(payload, secret, {}, (err, val) => {
+        if (err) {
+          this._clearCachedSecret();
+          return void reject(err);
+        }
+        return void resolve(val);
+      });
     });
   }
 
@@ -69,27 +74,59 @@ class Rewt {
    * Verifies the given token and parses the payload from it.
    *
    * @param {String} token The token to verify and parse.
-   * @param {Function} cb Node style callback.
    */
-  verify(token, cb) {
-    this._getSecret((err, val) => {
-      if (err) {
-        cb(err);
-      } else {
-        jwt.verify(token, val, cb);
-      }
+  async verify(token) {
+    const secret = await this._getSecret();
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, secret, (err, val) => {
+        if (err) {
+          this._clearCachedSecret();
+          return void reject(err);
+        }
+        return void resolve(val);
+      });
     });
   }
 
   /**
    * Returns the secret to sign and verify requests with.
-   * @param{Function} cb Node style callback.
+   * @returns {String} The secret to use.
+   * @throws {Error} If the secret can not be identified.
    */
-  _getSecret(cb) {
-    this._scripty.loadScript('secretRetrievalScript', secretRetrievalScript, (err, script) => {
-      if (err) return void cb(err);
+  async _getSecret() {
+    if (this._cachedSecret) {
+      // Short circuit.
+      return this._getCachedSecret();
+    }
 
-      script.run(1, this._generateKeyName(), uuid.v4(), this.options.ttl, cb);
+    return new Promise((resolve, reject) => {
+      this._scripty.loadScript('secretRetrievalScript', secretRetrievalScript, (err, script) => {
+        if (err) {
+          return void reject(err);
+        }
+
+        script.run(
+          1,
+          this._generateKeyName(),
+          uuid.v4(),
+          this.options.ttl,
+          (err, [ttl, secret]) => {
+            if (err) {
+              return void reject(err);
+            }
+
+            // Only cache the secret if we're supposed to AND the TTL on it is
+            // more than 20 seconds.
+            if (this._shouldCacheSecret && ttl > 20) {
+              this._cacheSecret(
+                secret,
+                ttl - 5 /* Remove five seconds to give ourselves more buffer */
+              );
+            }
+            return void resolve(secret);
+          }
+        );
+      });
     });
   }
 
@@ -99,6 +136,37 @@ class Rewt {
    */
   _generateKeyName() {
     return `${this.options.redisNamespace}:rewt-secret`;
+  }
+
+  /**
+   * Cache the secret for as long as the current TTL. While this may be the
+   * incorrect time period, we'll clear the value on any verification errors.
+   *
+   * @param {String} secret The secret to hold on to.
+   * @param {Number} ttl The time to retain the secret in seconds.
+   */
+  _cacheSecret(secret, ttl) {
+    this._cachedSecret = secret;
+    this._clearCachedSecret = setTimeout(() => {
+      this._clearCachedSecret();
+    }, ttl * 1000);
+  }
+
+  /**
+   * Returns the cached secret.
+   *
+   * @returns {String} The cached secret.
+   */
+  _getCachedSecret() {
+    return this._cachedSecret;
+  }
+
+  /**
+   * Clears the cached secret and clearing timeout.
+   */
+  _clearCachedSecret() {
+    this._cachedSecret = null;
+    this._clearCachedSecret = null;
   }
 }
 
