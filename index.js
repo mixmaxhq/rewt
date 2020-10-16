@@ -147,7 +147,7 @@ class Rewt {
    */
   _cacheSecret(secret, ttl) {
     this._cachedSecret = secret;
-    this._clearCachedSecret = setTimeout(() => {
+    this._clearCachedSecretRef = setTimeout(() => {
       this._clearCachedSecret();
     }, ttl * 1000);
   }
@@ -166,7 +166,8 @@ class Rewt {
    */
   _clearCachedSecret() {
     this._cachedSecret = null;
-    this._clearCachedSecret = null;
+    clearTimeout(this._clearCachedSecretRef);
+    this._clearCachedSecretRef = null;
   }
 }
 

@@ -101,6 +101,56 @@ describe('rewt', () => {
         expect(rewt._getCachedSecret).toHaveBeenCalled();
         expect(rewt._cacheSecret).toHaveBeenCalledTimes(1);
       });
+
+      if (process.env.RESET_TEST) {
+        it('should be able to sign and verify payloads properly with cached secrets', async () => {
+          jest.setTimeout(35 * 1000);
+
+          rewt = buildRewt('redis://localhost:6379', 'integration', 30, true);
+
+          jest.spyOn(rewt, '_cacheSecret');
+          jest.spyOn(rewt, '_getCachedSecret');
+
+          // Test signing behaviour.
+          const payload = { _id: 'world', iat: Math.floor(Date.now() / 1000) - 30 };
+          const signed = await rewt.sign(payload);
+          expect(rewt._getCachedSecret).not.toHaveBeenCalled();
+          expect(rewt._cacheSecret).toHaveBeenCalledTimes(1);
+
+          // Test verification behaviour.
+          const verified = await rewt.verify(signed);
+          expect(verified).toEqual(payload);
+          expect(rewt._getCachedSecret).toHaveBeenCalled();
+          expect(rewt._cacheSecret).toHaveBeenCalledTimes(1);
+
+          // Get the current secret to ensure it changed later.
+          const secret = await rewt._getSecret();
+          expect(rewt._getCachedSecret).toHaveBeenCalledTimes(2);
+
+          // Wait longer than the secret TTL that we set.
+          const waitPromise = deferred();
+          setTimeout(waitPromise.defer(), 31 * 1000);
+          await waitPromise;
+
+          // Test signing behaviour again.
+          const payload2 = { _id: 'world', iat: Math.floor(Date.now() / 1000) - 30 };
+          const signed2 = await rewt.sign(payload2);
+          // This is the same number of cache hit calls as before the setTimeout
+          // pause, indicating that we made a new secret correctly.
+          expect(rewt._getCachedSecret).toHaveBeenCalledTimes(2);
+          expect(rewt._cacheSecret).toHaveBeenCalledTimes(2);
+
+          // Test verification behaviour again.
+          const verified2 = await rewt.verify(signed2);
+          expect(verified2).toEqual(payload2);
+          expect(rewt._getCachedSecret).toHaveBeenCalledTimes(3);
+          expect(rewt._cacheSecret).toHaveBeenCalledTimes(2);
+
+          const newSecret = await rewt._getSecret();
+          expect(rewt._getCachedSecret).toHaveBeenCalledTimes(4);
+          expect(secret).not.toEqual(newSecret);
+        });
+      }
     });
   }
 });
