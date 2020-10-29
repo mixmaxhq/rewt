@@ -62,7 +62,7 @@ class Rewt {
     return new Promise((resolve, reject) => {
       jwt.sign(payload, secret, {}, (err, val) => {
         if (err) {
-          this._clearCachedSecret();
+          this._clearCachedSecret(secret);
           return void reject(err);
         }
         return void resolve(val);
@@ -80,7 +80,7 @@ class Rewt {
     return new Promise((resolve, reject) => {
       jwt.verify(token, secret, (err, val) => {
         if (err) {
-          this._clearCachedSecret();
+          this._clearCachedSecret(secret);
           return void reject(err);
         }
         return void resolve(val);
@@ -164,7 +164,9 @@ class Rewt {
   /**
    * Clears the cached secret and clearing timeout.
    */
-  _clearCachedSecret() {
+  _clearCachedSecret(secret) {
+    if (!!secret && secret === this._cachedSecret) return;
+
     this._cachedSecret = null;
     clearTimeout(this._clearCachedSecretRef);
     this._clearCachedSecretRef = null;
