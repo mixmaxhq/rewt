@@ -6,7 +6,8 @@
   "scripts": {
     "ci": "npm run lint && npm test",
     "lint": "eslint .",
-    "test": "jasmine"
+    "test": "jest",
+    "test:all": "INTEGRATION_TEST=true RESET_TEST=true jest"
   },
   "repository": {
     "type": "git",
@@ -32,12 +33,12 @@
   },
   "devDependencies": {
     "@mixmaxhq/prettier-config": "^1.0.0",
-    "chai": "^3.5.0",
     "eslint": "^6.8.0",
     "eslint-config-mixmax": "^4.8.0",
-    "jasmine": "^2.5.2",
+    "jest": "^26.5.3",
     "pre-commit": "^1.2.2",
     "prettier": "^1.19.1",
+    "promise-callbacks": "^3.8.2",
     "redis": "^2.6.2"
   },
   "pre-commit": [
