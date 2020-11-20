@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@mixmaxhq/prettier-config": "^1.0.0",
-    "eslint": "^6.8.0",
+    "eslint": "^7.14.0",
     "eslint-config-mixmax": "^4.8.0",
     "jest": "^26.5.3",
     "pre-commit": "^1.2.2",
