@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const Scripty = require('node-redis-scripty');
 const uuid = require('uuid');
 
 /**
@@ -7,7 +6,7 @@ const uuid = require('uuid');
  * key's value. If it's not set, it set's it to the given value and returns
  * that.
  */
-const secretRetrievalScript = `
+const SECRET_RETRIEVAL_SCRIPT = `
 local key = KEYS[1]
 local newVal = ARGV[1]
 local ttl = ARGV[2]
@@ -48,7 +47,6 @@ class Rewt {
 
     this.options = options;
     this._redisConn = options.redisConn;
-    this._scripty = new Scripty(this._redisConn);
     this._shouldCacheSecret = options.cacheSecret || false;
   }
 
@@ -95,39 +93,27 @@ class Rewt {
    */
   async _getSecret() {
     if (this._cachedSecret) {
-      // Short circuit.
       return this._getCachedSecret();
     }
 
-    return new Promise((resolve, reject) => {
-      this._scripty.loadScript('secretRetrievalScript', secretRetrievalScript, (err, script) => {
-        if (err) {
-          return void reject(err);
+    const result = await new Promise((resolve, reject) => {
+      this._redisConn.eval(
+        SECRET_RETRIEVAL_SCRIPT,
+        1,
+        this._generateKeyName(),
+        uuid.v4(),
+        String(this.options.ttl),
+        (err, res) => {
+          if (err) return reject(err);
+          return resolve(res);
         }
-
-        script.run(
-          1,
-          this._generateKeyName(),
-          uuid.v4(),
-          this.options.ttl,
-          (err, [ttl, secret]) => {
-            if (err) {
-              return void reject(err);
-            }
-
-            // Only cache the secret if we're supposed to AND the TTL on it is
-            // more than 20 seconds.
-            if (this._shouldCacheSecret && ttl > 20) {
-              this._cacheSecret(
-                secret,
-                ttl - 5 /* Remove five seconds to give ourselves more buffer */
-              );
-            }
-            return void resolve(secret);
-          }
-        );
-      });
+      );
     });
+
+    if (this._shouldCacheSecret && result[0] > 20) {
+      this._cacheSecret(result[1], result[0] - 5);
+    }
+    return result[1];
   }
 
   /**

@@ -28,7 +28,7 @@
   "homepage": "https://github.com/mixmaxhq/rewt#readme",
   "dependencies": {
     "jsonwebtoken": "^8.3.0",
-    "node-redis-scripty": "0.0.5",
+    "redis": "^2.7.1",
     "uuid": "^2.0.3"
   },
   "devDependencies": {
@@ -38,8 +38,7 @@
     "jest": "^26.5.3",
     "pre-commit": "^1.2.2",
     "prettier": "^1.19.1",
-    "promise-callbacks": "^3.8.2",
-    "redis": "^2.6.2"
+    "promise-callbacks": "^3.8.2"
   },
   "pre-commit": [
     "lint"
