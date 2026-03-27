@@ -1,3 +1,11 @@
 {
-  "extends": ["mixmax/node/withJest"]
+  "extends": ["mixmax/node/withJest"],
+  "globals": {
+    "vi": "readonly"
+  },
+  "settings": {
+    "jest": {
+      "version": 29
+    }
+  }
 }
