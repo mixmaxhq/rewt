@@ -75,7 +75,6 @@ describe('rewt', () => {
       });
       if (process.env.RESET_TEST) {
         it('should be able to sign and verify payloads properly with cached secrets', async () => {
-          vi.setConfig({ testTimeout: 35 * 1000 });
           rewt = await buildRewt('redis://localhost:6379', 'integration', 30, true);
 
           vi.resetAllMocks();
@@ -104,7 +103,7 @@ describe('rewt', () => {
           expect(verified2).toEqual(payload2);
           const newSecret = await rewt._getSecret();
           expect(secret).not.toEqual(newSecret);
-        });
+        }, 35000);
       }
     });
   }

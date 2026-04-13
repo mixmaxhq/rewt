@@ -7,7 +7,7 @@
     "ci": "npm run lint && npm test",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:all": "INTEGRATION_TEST=true RESET_TEST=true jest"
+    "test:all": "INTEGRATION_TEST=true RESET_TEST=true vitest run"
   },
   "repository": {
     "type": "git",
