@@ -63,7 +63,7 @@ describe('rewt', () => {
       });
 
       it('should be able to sign and verify payloads properly', async () => {
-        jest.spyOn(rewt, '_getCachedSecret');
+        vi.spyOn(rewt, '_getCachedSecret');
 
         const payload = { _id: 'world', iat: Math.floor(Date.now() / 1000) - 30 };
         const signed = await rewt.sign(payload);
@@ -75,12 +75,11 @@ describe('rewt', () => {
       });
       if (process.env.RESET_TEST) {
         it('should be able to sign and verify payloads properly with cached secrets', async () => {
-          jest.setTimeout(35 * 1000);
           rewt = await buildRewt('redis://localhost:6379', 'integration', 30, true);
 
-          jest.resetAllMocks();
-          jest.spyOn(rewt, '_cacheSecret');
-          jest.spyOn(rewt, '_getCachedSecret');
+          vi.resetAllMocks();
+          vi.spyOn(rewt, '_cacheSecret');
+          vi.spyOn(rewt, '_getCachedSecret');
 
           // Test initial signing and verification
           const payload = { _id: 'world', iat: Math.floor(Date.now() / 1000) - 30 };
@@ -104,7 +103,7 @@ describe('rewt', () => {
           expect(verified2).toEqual(payload2);
           const newSecret = await rewt._getSecret();
           expect(secret).not.toEqual(newSecret);
-        });
+        }, 35000);
       }
     });
   }
